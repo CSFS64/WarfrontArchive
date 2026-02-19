@@ -45,28 +45,33 @@
           <h1 class="panel-title">Warfront Archive Data Explorer</h1>
         </div>
 
-        <!-- Map header bar inside panel -->
-        <div class="map-header">
-          <div class="map-header-left">
-            <img class="panel-logo" src="assets/panel-logo.png" alt="Panel Logo" />
-            <div class="map-subtitle" id="mapSubtitle">Reports on: —</div>
-          </div>
-
-          <div class="map-header-right" id="mapStats">
-            <div class="stat"><span class="stat-label">Repelled:</span> <span class="stat-val" id="statRepelled">0</span></div>
-            <div class="stat"><span class="stat-label">Assaults:</span> <span class="stat-val" id="statAssaults">0</span></div>
-            <div class="stat"><span class="stat-label">Other:</span> <span class="stat-val" id="statOther">0</span></div>
-          </div>
-        </div>
-
-        <!-- Map canvas -->
+        <!-- Map canvas + overlay header -->
         <div class="map-wrap">
+        
+          <!-- Leaflet map -->
           <div id="map"></div>
+        
+          <!-- Overlay header inside map -->
+          <div class="map-header map-overlay">
+            <div class="map-header-left">
+              <img class="panel-logo" src="assets/panel-logo.png" alt="Panel Logo" />
+              <div class="map-subtitle" id="mapSubtitle">Reports on: —</div>
+            </div>
+        
+            <div class="map-header-right" id="mapStats">
+              <div class="stat"><span class="stat-label">Repelled:</span> <span class="stat-val" id="statRepelled">0</span></div>
+              <div class="stat"><span class="stat-label">Assaults:</span> <span class="stat-val" id="statAssaults">0</span></div>
+              <div class="stat"><span class="stat-label">Other:</span> <span class="stat-val" id="statOther">0</span></div>
+            </div>
+          </div>
+        
+          <!-- attribution -->
           <div class="map-attrib">
             <span class="muted">Data:</span> <a href="#" id="dataSources">Sources</a>
             <span class="muted"> • </span>
             <span class="muted">© Map</span>
           </div>
+        
         </div>
 
         <!-- Tabs bar (Temporal / Filters / Environment / Share) -->
