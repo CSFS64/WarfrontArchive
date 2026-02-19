@@ -1,0 +1,166 @@
+:root{
+  --bg:#0f1115;
+  --panel:#1a1f26;
+  --panel2:#141820;
+  --border:#2a3240;
+  --text:#e7eaf0;
+  --muted:#aeb7c6;
+  --accent:#f2a900; /* Tornado Archive 那种黄橙强调 */
+}
+
+*{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+/* topbar */
+.topbar{
+  position:sticky; top:0; z-index:10;
+  background:linear-gradient(180deg, #111420, #0f1115);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.brand{ display:flex; align-items:center; gap:12px; }
+.logo{
+  width:44px; height:44px;
+  border-radius:10px;
+  background:var(--accent);
+  color:#111;
+  font-weight:900;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  letter-spacing:1px;
+}
+.title{ font-weight:800; }
+.subtitle{ color:var(--muted); font-size:12px; margin-top:2px; }
+
+.nav{ display:flex; gap:10px; flex-wrap:wrap; }
+.navlink{
+  color:var(--muted);
+  text-decoration:none;
+  font-size:13px;
+  padding:8px 10px;
+  border-radius:10px;
+  border:1px solid transparent;
+}
+.navlink:hover{ border-color:var(--border); color:var(--text); }
+.navlink.active{ color:var(--text); border-color:var(--accent); }
+
+/* layout */
+.wrap{
+  max-width:1200px;
+  margin:18px auto;
+  padding:0 14px 22px;
+  display:grid;
+  gap:16px;
+}
+
+.panel{
+  background:linear-gradient(180deg, var(--panel), var(--panel2));
+  border:1px solid var(--border);
+  border-radius:16px;
+  overflow:hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.25);
+}
+.panel-head{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+  padding:12px 12px 10px;
+  border-bottom:1px solid var(--border);
+}
+.panel-title{
+  font-weight:800;
+  letter-spacing:.3px;
+}
+
+.controls{
+  display:flex; gap:10px;
+  align-items:flex-end;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+.control{
+  display:grid;
+  gap:6px;
+  font-size:12px;
+  color:var(--muted);
+}
+.control select,
+.control input{
+  background:#0f131b;
+  color:var(--text);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:8px 10px;
+  outline:none;
+}
+.control select:focus,
+.control input:focus{ border-color:var(--accent); }
+
+.btn{
+  border:1px solid var(--accent);
+  background:var(--accent);
+  color:#111;
+  font-weight:800;
+  padding:9px 12px;
+  border-radius:12px;
+  cursor:pointer;
+}
+.btn.ghost{
+  background:transparent;
+  color:var(--text);
+  border-color:var(--border);
+}
+.btn.ghost:hover{ border-color:var(--accent); }
+
+.map{ height:520px; width:100%; }
+.chart-wrap{ padding:10px 12px 12px; }
+
+.panel-foot{
+  padding:10px 12px 12px;
+  border-top:1px solid var(--border);
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.meta{ color:var(--muted); font-size:12px; }
+.hint{ color:var(--muted); font-size:12px; opacity:.9; }
+
+/* legend */
+.legend{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+.legend-item{
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--muted);
+  border:1px solid var(--border);
+  padding:6px 8px;
+  border-radius:999px;
+}
+.legend-dot{
+  width:10px; height:10px; border-radius:999px;
+  background:var(--muted);
+}
+
+/* MarkerCluster style tweak: 更像“数字圆圈” */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large{
+  background: rgba(242,169,0,.28) !important;
+}
+.marker-cluster div{
+  background: rgba(242,169,0,.95) !important;
+  color:#111 !important;
+  font-weight:900 !important;
+  border:1px solid rgba(0,0,0,.25);
+}
