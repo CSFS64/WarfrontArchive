@@ -99,7 +99,7 @@ function init(){
 // ===== map =====
 function initMap(){
   map = L.map('map', {
-    zoomControl: true,
+    zoomControl: false,
     preferCanvas: true
   });
 
