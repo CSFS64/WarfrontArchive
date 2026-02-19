@@ -209,4 +209,128 @@ body{
 }
 
 .mini-btn{
-  border:
+  border:1px solid #666;
+  background:#f2f2f2;
+  padding:3px 10px;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.pill{
+  border:1px solid #777;
+  background:#e8e8e8;
+  padding:3px 8px;
+  font-size:14px;
+  min-width: 110px;
+  text-align:center;
+}
+
+.search-like{
+  flex:1;
+  min-width: 220px;
+  border:1px solid #777;
+  padding:4px 8px;
+  font-size:14px;
+  background:#fff;
+}
+
+.show-box{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin-left:auto;
+}
+.show-label{ font-size:14px; }
+.show-select{
+  border:1px solid #777;
+  padding:3px 6px;
+  font-size:14px;
+  background:#fff;
+}
+
+/* ===== chart area ===== */
+.chart-wrap{
+  position:relative;
+  background:#fff;
+  padding: 10px 8px 18px;
+  border-bottom:1px solid #bbb;
+}
+.y-label{
+  position:absolute;
+  left:6px;
+  top:52%;
+  transform: rotate(-90deg) translateY(-50%);
+  transform-origin:left top;
+  font-size:14px;
+  color:#111;
+}
+
+/* right legend (rating-like) */
+.rating-legend{
+  position:absolute;
+  right:10px;
+  top:12px;
+  width: 130px;
+  border-left: 0;
+  font-size:13px;
+}
+.legend-title{
+  font-weight:700;
+  margin-bottom:6px;
+}
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:4px 0;
+}
+.swatch{
+  width:18px;
+  height:18px;
+  border:1px solid #333;
+  display:inline-block;
+}
+.swatch.c0{ background:#ff00ff; }
+.swatch.c1{ background:#ff0000; }
+.swatch.c2{ background:#ff7a00; }
+.swatch.c3{ background:#ffd200; }
+.swatch.c4{ background:#0077ff; }
+.swatch.c5{ background:#00d084; }
+.swatch.c6{ background:#666; }
+
+/* ===== big fullscreen button ===== */
+.full-btn-wrap{
+  padding: 12px 0 0;
+}
+.full-btn{
+  display:block;
+  text-align:center;
+  background: linear-gradient(180deg, var(--orange2), var(--orange));
+  color:#111;
+  text-decoration:none;
+  padding: 16px 12px;
+  font-size: 22px;
+  border-radius: 30px;
+  border:0;
+}
+.full-btn:hover{ filter: brightness(1.03); }
+
+/* ===== MarkerCluster (make it “圆圈数字”感更强) ===== */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large{
+  background: rgba(0,0,0,.10) !important;
+}
+.marker-cluster div{
+  background: rgba(0,0,0,.55) !important;
+  color:#fff !important;
+  font-weight:700 !important;
+  border:2px solid rgba(255,255,255,.65) !important;
+}
+
+/* responsive */
+@media (max-width: 1040px){
+  :root{ --panelW: 94vw; --mapH: 54vh; }
+  .panel-title{ font-size: 28px; }
+  .brand-logo{ height:56px; }
+}
