@@ -189,9 +189,6 @@ body{
 }
 .map-header.map-overlay{
   position:absolute;
-  left:10px;
-  top:10px;
-  right:10px;
   z-index:500;
 
   display:flex;
