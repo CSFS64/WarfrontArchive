@@ -198,8 +198,8 @@ body{
   justify-content:space-between;
   align-items:flex-start;
 
-  background: rgba(255,255,255,.65);
-  border-bottom:2px solid #111;  /* 只保留底线作为分割 */
+  background: rgba(255,255,255,.45);
+  border-bottom:2px solid #111;
   padding:8px 10px 6px;
 
   pointer-events:none;
