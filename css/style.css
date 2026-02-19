@@ -139,8 +139,11 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  background: rgba(255,255,255,.0);
-  padding: 8px 6px 6px;
+
+  background: rgba(255,255,255,.65);
+  padding: 8px 10px 6px;
+
+  border-bottom:2px solid #111;
 }
 .map-header-left{
   display:flex;
@@ -167,7 +170,7 @@ body{
 /* ===== map ===== */
 .map-wrap{
   position:relative;
-  border:0;
+  border:2px solid #111;
 }
 #map{
   height: var(--mapH);
