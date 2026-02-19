@@ -3,91 +3,120 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Frontline Stats Explorer</title>
+  <title>Kalyna Frontline Data Explorer</title>
 
   <link rel="stylesheet" href="css/style.css" />
 
   <!-- Leaflet -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-  <!-- MarkerCluster (聚合圆圈数字) -->
+  <!-- MarkerCluster -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
   <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
 </head>
 
 <body>
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">KF</div>
-      <div>
-        <div class="title">Frontline Stats Explorer</div>
-        <div class="subtitle">Ukraine official reports • Repelled attacks & other metrics</div>
+  <!-- ===== Top header (logo + nav) ===== -->
+  <header class="site-header">
+    <div class="site-header-inner">
+      <div class="brand">
+        <img class="brand-logo" src="assets/logo.png" alt="Logo" />
       </div>
-    </div>
 
-    <nav class="nav">
-      <a href="#" class="navlink active">Data Explorer</a>
-      <a href="#" class="navlink">Updates</a>
-      <a href="#" class="navlink">About</a>
-    </nav>
+      <nav class="top-nav" aria-label="Top Navigation">
+        <a class="nav-link" href="#">Home</a>
+        <a class="nav-link active" href="#">Data Explorer</a>
+        <a class="nav-link" href="#">Blog & Updates</a>
+        <a class="nav-link" href="#">Contact us!</a>
+        <a class="nav-link" href="#">About</a>
+        <a class="nav-link" href="#">Patreon</a>
+      </nav>
+    </div>
   </header>
 
-  <main class="wrap">
-    <!-- Map Panel -->
-    <section class="panel map-panel">
-      <div class="panel-head">
-        <div class="panel-title">Map</div>
+  <!-- ===== Background stage (left image shows, center panel) ===== -->
+  <main class="stage">
+    <div class="stage-bg" aria-hidden="true"></div>
 
-        <div class="controls">
-          <label class="control">
-            <span>Metric</span>
-            <select id="metricSelect">
-              <option value="repelled">击退进攻次数</option>
-              <option value="assaults">敌军进攻次数</option>
-              <option value="shelling">炮击事件</option>
+    <section class="panel">
+      <div class="panel-inner">
+        <!-- Title row -->
+        <div class="panel-title-row">
+          <h1 class="panel-title">Kalyna Frontline Data Explorer</h1>
+        </div>
+
+        <!-- Map header bar inside panel -->
+        <div class="map-header">
+          <div class="map-header-left">
+            <img class="panel-logo" src="assets/panel-logo.png" alt="Panel Logo" />
+            <div class="map-subtitle" id="mapSubtitle">Reports on: —</div>
+          </div>
+
+          <div class="map-header-right" id="mapStats">
+            <div class="stat"><span class="stat-label">Repelled:</span> <span class="stat-val" id="statRepelled">0</span></div>
+            <div class="stat"><span class="stat-label">Assaults:</span> <span class="stat-val" id="statAssaults">0</span></div>
+            <div class="stat"><span class="stat-label">Other:</span> <span class="stat-val" id="statOther">0</span></div>
+          </div>
+        </div>
+
+        <!-- Map canvas -->
+        <div class="map-wrap">
+          <div id="map"></div>
+          <div class="map-attrib">
+            <span class="muted">Data:</span> <a href="#" id="dataSources">Sources</a>
+            <span class="muted"> • </span>
+            <span class="muted">© Map</span>
+          </div>
+        </div>
+
+        <!-- Tabs bar (Temporal / Filters / Environment / Share) -->
+        <div class="tabs-bar">
+          <button class="tab active" data-tab="temporal">Temporal</button>
+          <button class="tab" data-tab="filters">Filters</button>
+          <button class="tab" data-tab="env">Environment</button>
+          <button class="tab" data-tab="share">Share</button>
+        </div>
+
+        <!-- Temporal controls row (looks like TornadoArchive) -->
+        <div class="temporal-controls">
+          <button class="mini-btn" id="btnSurprise">Surprise Me</button>
+
+          <div class="pill" id="selectedDatePill">—</div>
+
+          <input class="search-like" id="quickInput" placeholder="e.g., Nov 2013 / 2026-02-18" />
+
+          <div class="show-box">
+            <span class="show-label">Show:</span>
+            <select class="show-select" id="showMode">
+              <option value="all" selected>All</option>
+              <option value="hourly">Hourly</option>
+              <option value="none">None</option>
             </select>
-          </label>
-
-          <label class="control">
-            <span>From</span>
-            <input id="dateFrom" type="date" />
-          </label>
-
-          <label class="control">
-            <span>To</span>
-            <input id="dateTo" type="date" />
-          </label>
-
-          <button id="btnApply" class="btn">Apply</button>
-          <button id="btnReset" class="btn ghost">Reset</button>
+          </div>
         </div>
-      </div>
 
-      <div id="map" class="map"></div>
+        <!-- Chart -->
+        <div class="chart-wrap">
+          <div class="y-label"># of Events</div>
+          <canvas id="chart" height="140"></canvas>
 
-      <div class="panel-foot">
-        <div id="mapMeta" class="meta">Loading…</div>
-        <div class="hint">提示：缩放会自动聚合/展开数字圆圈；点击点位查看明细</div>
-      </div>
-    </section>
-
-    <!-- Chart Panel -->
-    <section class="panel chart-panel">
-      <div class="panel-head">
-        <div class="panel-title">Temporal</div>
-
-        <div class="legend" id="chartLegend">
-          <!-- JS 动态插入 -->
+          <!-- Right-side rating-like legend (you can repurpose to “directions”) -->
+          <div class="rating-legend" id="dirLegend">
+            <div class="legend-title">Direction:</div>
+            <div class="legend-item"><span class="swatch c0"></span> Kupiansk</div>
+            <div class="legend-item"><span class="swatch c1"></span> Lyman</div>
+            <div class="legend-item"><span class="swatch c2"></span> Bakhmut</div>
+            <div class="legend-item"><span class="swatch c3"></span> Avdiivka</div>
+            <div class="legend-item"><span class="swatch c4"></span> Zaporizhzhia</div>
+            <div class="legend-item"><span class="swatch c5"></span> Kherson</div>
+            <div class="legend-item"><span class="swatch c6"></span> Other</div>
+          </div>
         </div>
-      </div>
 
-      <div class="chart-wrap">
-        <canvas id="chart" height="120"></canvas>
-      </div>
-
-      <div class="panel-foot">
-        <div id="chartMeta" class="meta">—</div>
-        <div class="hint">x = 时间（天/周），y = 次数（可按方向堆叠）</div>
+        <!-- Big orange button -->
+        <div class="full-btn-wrap">
+          <a class="full-btn" href="#" id="btnFullscreen" target="_blank" rel="noopener">Go Fullscreen (In new tab)</a>
+        </div>
       </div>
     </section>
   </main>
@@ -95,11 +124,8 @@
   <!-- libs -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
-  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
-  <!-- app -->
   <script src="js/app.js"></script>
 </body>
 </html>
