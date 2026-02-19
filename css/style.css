@@ -95,6 +95,7 @@ body{
 }
 
 .panel{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", "Courier New", monospace;
   position:relative;
   z-index:2;
   width: var(--panelW);
@@ -179,23 +180,32 @@ body{
 /* ===== tabs bar ===== */
 .tabs-bar{
   display:flex;
-  border-top: 1px solid var(--tabline);
-  border-bottom: 1px solid var(--tabline);
+  background:#d0d0d0;
+  border-top:2px solid #111;
+  border-bottom:2px solid #111;
   margin-top: 8px;
-  background: var(--tab);
 }
 .tab{
   flex:1;
   border:0;
   background:transparent;
-  padding: 7px 0;
+  padding:6px 0;
   font-size:18px;
   cursor:pointer;
-  border-right: 1px solid var(--tabline);
+  border-right:2px solid #111;
+  color:#111;
+  line-height:1;
 }
 .tab:last-child{ border-right:0; }
 .tab.active{
+  background:#fff;
   font-weight:700;
+
+  /* 关键：让它看起来和下面白色卡片连成一块 */
+  position:relative;
+  z-index:2;
+  margin-bottom:-2px;
+  border-bottom:2px solid #fff;
 }
 
 /* ===== temporal controls (match look) ===== */
