@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Frontline Stats Explorer</title>
+
+  <link rel="stylesheet" href="css/style.css" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+  <!-- MarkerCluster (聚合圆圈数字) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">KF</div>
+      <div>
+        <div class="title">Frontline Stats Explorer</div>
+        <div class="subtitle">Ukraine official reports • Repelled attacks & other metrics</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a href="#" class="navlink active">Data Explorer</a>
+      <a href="#" class="navlink">Updates</a>
+      <a href="#" class="navlink">About</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Map Panel -->
+    <section class="panel map-panel">
+      <div class="panel-head">
+        <div class="panel-title">Map</div>
+
+        <div class="controls">
+          <label class="control">
+            <span>Metric</span>
+            <select id="metricSelect">
+              <option value="repelled">击退进攻次数</option>
+              <option value="assaults">敌军进攻次数</option>
+              <option value="shelling">炮击事件</option>
+            </select>
+          </label>
+
+          <label class="control">
+            <span>From</span>
+            <input id="dateFrom" type="date" />
+          </label>
+
+          <label class="control">
+            <span>To</span>
+            <input id="dateTo" type="date" />
+          </label>
+
+          <button id="btnApply" class="btn">Apply</button>
+          <button id="btnReset" class="btn ghost">Reset</button>
+        </div>
+      </div>
+
+      <div id="map" class="map"></div>
+
+      <div class="panel-foot">
+        <div id="mapMeta" class="meta">Loading…</div>
+        <div class="hint">提示：缩放会自动聚合/展开数字圆圈；点击点位查看明细</div>
+      </div>
+    </section>
+
+    <!-- Chart Panel -->
+    <section class="panel chart-panel">
+      <div class="panel-head">
+        <div class="panel-title">Temporal</div>
+
+        <div class="legend" id="chartLegend">
+          <!-- JS 动态插入 -->
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <canvas id="chart" height="120"></canvas>
+      </div>
+
+      <div class="panel-foot">
+        <div id="chartMeta" class="meta">—</div>
+        <div class="hint">x = 时间（天/周），y = 次数（可按方向堆叠）</div>
+      </div>
+    </section>
+  </main>
+
+  <!-- libs -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- app -->
+  <script src="js/app.js"></script>
+</body>
+</html>
