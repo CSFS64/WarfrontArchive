@@ -75,16 +75,18 @@ body{
 /* ===== stage + background ===== */
 .stage{
   position:relative;
+  z-index:1;
   min-height: calc(100vh - 110px);
   padding: 28px 0 40px;
 }
 .stage-bg{
-  position:absolute;
+  position:fixed;     /* 关键：固定在视口 */
   inset:0;
-  background:
-    url("../assets/bg.jpg") left center / cover no-repeat;
-  filter: none;
+  z-index:0;
+
+  background: url("../assets/bg.jpg") left center / cover no-repeat;
 }
+
 .stage::after{
   /* 让右侧略暗，突出中间面板 */
   content:"";
@@ -104,6 +106,12 @@ body{
   border: 0;
   padding: 22px;
   box-shadow: none;
+}
+
+/* 但：标题 & Fullscreen 按钮 用回正常字体 */
+.panel-title,
+.full-btn{
+  font-family: Arial, Helvetica, sans-serif;
 }
 
 .panel-inner{
