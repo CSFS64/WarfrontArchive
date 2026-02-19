@@ -189,6 +189,9 @@ body{
 }
 .map-header.map-overlay{
   position:absolute;
+  left:0;
+  top:0;
+  right:0;
   z-index:500;
 
   display:flex;
@@ -196,7 +199,7 @@ body{
   align-items:flex-start;
 
   background: rgba(255,255,255,.65);
-  border:2px solid #111;
+  border-bottom:2px solid #111;  /* 只保留底线作为分割 */
   padding:8px 10px 6px;
 
   pointer-events:none;
