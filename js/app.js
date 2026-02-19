@@ -134,6 +134,19 @@ function initMap(){
   map.addLayer(cluster);
 }
 
+const header = document.querySelector('.map-header.map-overlay');
+header.addEventListener('mouseenter', () => {
+  map.dragging.disable();
+  map.scrollWheelZoom.disable();
+  map.doubleClickZoom.disable();
+});
+
+header.addEventListener('mouseleave', () => {
+  map.dragging.enable();
+  map.scrollWheelZoom.enable();
+  map.doubleClickZoom.enable();
+});
+
 function renderMarkers(items){
   cluster.clearLayers();
 
