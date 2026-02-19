@@ -28,7 +28,7 @@ body{
 .site-header{
   background:#fff;
   border-bottom:0;
-  padding:18px 0 14px;
+  padding:14px 0 10px;
 }
 .site-header-inner{
   max-width: 1200px;
@@ -39,7 +39,7 @@ body{
   gap:18px;
 }
 .brand-logo{
-  height:240px;
+  height:134px;
   width:auto;
   display:block;
 }
