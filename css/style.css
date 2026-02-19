@@ -187,8 +187,28 @@ body{
   padding:4px 8px;
   font-size:12px;
 }
-.map-attrib a{ color:#00f; }
+.map-header.map-overlay{
+  position:absolute;
+  left:10px;
+  top:10px;
+  right:10px;
+  z-index:500;
 
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+
+  background: rgba(255,255,255,.65);
+  border:2px solid #111;
+  padding:8px 10px 6px;
+
+  pointer-events:none;
+}
+.map-header.map-overlay a,
+.map-header.map-overlay button{
+  pointer-events:auto;
+}
+.map-attrib a{ color:#00f; }
 .muted{ color:var(--muted); }
 
 /* ===== tabs bar ===== */
