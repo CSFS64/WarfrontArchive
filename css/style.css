@@ -26,6 +26,8 @@ body{
 
 /* ===== top header ===== */
 .site-header{
+  position: relative;
+  z-index: 50;
   background:#fff;
   border-bottom:0;
   padding:14px 0 10px;
@@ -80,19 +82,22 @@ body{
   padding: 28px 0 40px;
 }
 .stage-bg{
-  position:fixed;     /* 关键：固定在视口 */
-  inset:0;
-  z-index:0;
-
+  position: fixed;
+  inset: 0;
+  z-index: 0;
   background: url("../assets/bg.jpg") left center / cover no-repeat;
 }
 
-.stage::after{
-  /* 让右侧略暗，突出中间面板 */
+.stage-bg::after{
   content:"";
   position:absolute;
   inset:0;
-  background: linear-gradient(90deg, rgba(255,255,255,.0) 0%, rgba(255,255,255,.0) 40%, rgba(0,0,0,.12) 100%);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0) 0%,
+    rgba(255,255,255,0) 40%,
+    rgba(0,0,0,.12) 100%
+  );
   pointer-events:none;
 }
 
