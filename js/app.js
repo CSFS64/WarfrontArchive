@@ -721,9 +721,16 @@ function makeValueIcon(value){
   const size = value >= 80 ? 'large' : value >= 30 ? 'medium' : 'small';
   return L.divIcon({
     html: `<div><span>${value}</span></div>`,
-    className: `marker-cluster marker-cluster-${size} wa-point`, // ✅ 单点也用同风格
-    iconSize: L.point(34, 34)
+    className: `marker-cluster marker-cluster-${size} wa-point`,
+    iconSize: L.point(40, 40)
   });
+}
+
+function markerWithValue(latlng, value, popupHtml){
+  return L.marker(latlng, {
+    icon: makeValueIcon(value),
+    __value: value
+  }).bindPopup(popupHtml);
 }
 
 function renderMap(){
