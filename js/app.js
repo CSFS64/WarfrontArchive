@@ -691,84 +691,142 @@ function buildClusterLayer(markers){
   }).addLayers(markers);
 }
 
+function sumOverDates(dates, fn){
+  let s = 0;
+  for(const d of dates) s += fn(d);
+  return s;
+}
+
+function settlementSum(dates, oblast, dir, settlementName){
+  return sumOverDates(dates, (dateStr) =>
+    demoValue(dateStr, `settle:${oblast}:${dir}:${settlementName}`)
+  );
+}
+
 function renderMap(){
-  const dates = flattenSelectedDates();
-  const activeDate = dates[dates.length - 1] || "—"; // 默认取最后一天
-  elSubtitle.textContent = `Reports on ${activeDate}`;
+  const dates = flattenSelectedDates(); // ✅ 空 selections 时会返回 DEMO_DATES（All dates）
+  if(dates.length === 0) return;
 
-  // 统计：demo 里我们只把 repelled 放 statRepelled；其他先留 0
+  // ✅ subtitle：显示筛选范围（默认就是全部范围）
+  const rangeLabel = (dates.length === 1)
+    ? dates[0]
+    : `${dates[0]}~${dates[dates.length - 1]}`;
+
+  elSubtitle.textContent = `Reports on ${rangeLabel}`;
+
+  // ✅ 统计：按筛选日期聚合总和
   let total = 0;
-  for(const ob of OBLASTS) total += oblastTotalForDate(ob, activeDate);
-  elRepelled.textContent = String(total);
-  elAssaults.textContent = "0";
-  elOther.textContent = "0";
 
-  // 1) oblast markers
+  // 1) oblast markers（聚合）
   const mOb = [];
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
     if(!geo) continue;
-    const v = oblastTotalForDate(ob, activeDate);
+
+    const v = sumOverDates(dates, (dateStr) => oblastTotalForDate(ob, dateStr));
     if(v <= 0) continue;
 
+    total += v;
+
     const mk = L.circleMarker(geo.center, {
-      radius: 10,
+      radius: 12,
       color: "#111",
       weight: 1,
       fillColor: "#f39b00",
       fillOpacity: 0.85,
       __value: v
-    }).bindPopup(`<b>${ob}</b><br/>Repelled: ${v}`);
+    });
+
+    // ✅ 永久显示数字（不需要点击）
+    mk.bindTooltip(String(v), {
+      permanent: true,
+      direction: "center",
+      className: "num-label",
+      interactive: false
+    });
+
+    mk.bindPopup(`<b>${ob}</b><br/>Repelled (sum): ${v}`);
     mOb.push(mk);
   }
 
-  // 2) direction markers
+  elRepelled.textContent = String(total);
+  elAssaults.textContent = "0";
+  elOther.textContent = "0";
+
+  // 2) direction markers（聚合）
   const mDir = [];
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
     if(!geo) continue;
+
     for(const [dn, d] of Object.entries(geo.directions || {})){
-      let v = 0;
-      for(const s of (d.settlements || [])){
-        v += demoValue(activeDate, `settle:${ob}:${dn}:${s.name}`);
-      }
+      if(!d?.settlements?.length) continue;
+
+      const v = sumOverDates(dates, (dateStr) => {
+        let s = 0;
+        for(const st of d.settlements){
+          s += demoValue(dateStr, `settle:${ob}:${dn}:${st.name}`);
+        }
+        return s;
+      });
+
       if(v <= 0) continue;
 
       const mk = L.circleMarker(d.center, {
-        radius: 9,
+        radius: 11,
         color: "#111",
         weight: 1,
         fillColor: "#00d084",
         fillOpacity: 0.85,
         __value: v
-      }).bindPopup(`<b>${ob} / ${dn}</b><br/>Repelled: ${v}`);
+      });
+
+      mk.bindTooltip(String(v), {
+        permanent: true,
+        direction: "center",
+        className: "num-label",
+        interactive: false
+      });
+
+      mk.bindPopup(`<b>${ob} / ${dn}</b><br/>Repelled (sum): ${v}`);
       mDir.push(mk);
     }
   }
 
-  // 3) settlement markers
+  // 3) settlement markers（聚合）
   const mSet = [];
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
     if(!geo) continue;
+
     for(const [dn, d] of Object.entries(geo.directions || {})){
-      for(const s of (d.settlements || [])){
-        const v = demoValue(activeDate, `settle:${ob}:${dn}:${s.name}`);
+      for(const st of (d.settlements || [])){
+        const v = settlementSum(dates, ob, dn, st.name);
         if(v <= 0) continue;
 
-        const mk = L.circleMarker([s.lat, s.lng], {
-          radius: 7,
+        const mk = L.circleMarker([st.lat, st.lng], {
+          radius: 10,
           color: "#111",
           weight: 1,
           fillColor: "#ffd200",
           fillOpacity: 0.85,
           __value: v
-        }).bindPopup(`<b>${s.name}</b><br/>${ob} / ${dn}<br/>Repelled: ${v}`);
+        });
+
+        mk.bindTooltip(String(v), {
+          permanent: true,
+          direction: "center",
+          className: "num-label",
+          interactive: false
+        });
+
+        mk.bindPopup(`<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`);
         mSet.push(mk);
       }
     }
   }
 
+  // ✅ 重新建层（避免旧层残留）
   layerOblast = buildClusterLayer(mOb);
   layerDir = buildClusterLayer(mDir);
   layerSettle = buildClusterLayer(mSet);
