@@ -395,19 +395,15 @@ body{
   gap:8px;
   margin:4px 0;
 }
-.swatch{
-  width:18px;
-  height:18px;
-  border:1px solid #333;
-  display:inline-block;
-}
-.swatch.c0{ background:#ff00ff; }
-.swatch.c1{ background:#ff0000; }
-.swatch.c2{ background:#ff7a00; }
-.swatch.c3{ background:#ffd200; }
-.swatch.c4{ background:#0077ff; }
-.swatch.c5{ background:#00d084; }
-.swatch.c6{ background:#666; }
+
+.swatch{ width:18px; height:18px; border:1px solid #333; display:inline-block; }
+.swatch.ob0{ background:#ff00ff; } /* Sumy */
+.swatch.ob1{ background:#ff0000; } /* Kharkiv */
+.swatch.ob2{ background:#ff7a00; } /* Luhansk */
+.swatch.ob3{ background:#ffd200; } /* Donetsk */
+.swatch.ob4{ background:#0077ff; } /* Dnipropetrovsk */
+.swatch.ob5{ background:#00d084; } /* Zaporizhzhia */
+.swatch.ob6{ background:#666; }    /* Kherson */
 
 /* ===== big fullscreen button ===== */
 .full-btn-wrap{
