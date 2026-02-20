@@ -215,25 +215,46 @@ function init(){
 }
 
 function bindUI(){
-  // 添加日期/区间：回车
+  const btnSearch = document.getElementById("btnSearch");
+
+  if(!elQuick || !elChips || !elShowMode){
+    console.error("Missing required DOM elements. Check ids: dateChips, quickInput, showMode");
+    return;
+  }
+
+  function applyInput(){
+    const raw = (elQuick.value || "").trim();
+    if(!raw) return;
+
+    const parsed = parseDateInput(raw);
+    if(!parsed){
+      elQuick.focus();
+      elQuick.select();
+      return;
+    }
+
+    // ✅ 这里才是“筛选”发生的地方
+    state.selections.push(parsed);
+
+    elQuick.value = "";
+    renderAll();
+  }
+
+  // ✅ Enter 触发
   elQuick.addEventListener('keydown', (e) => {
-     if (e.key !== 'Enter') return;
-   
-     e.preventDefault(); // ✅ 防止 Enter 触发提交/刷新
-   
-     const raw = (elQuick.value || "").trim();
-     if (!raw) return;
-   
-     const parsed = parseDateInput(raw);
-     if (!parsed) {
-       elQuick.select();
-       return;
-     }
-   
-     state.selections.push(parsed);
-     elQuick.value = "";
-     renderAll();
-   });
+    if(e.key !== 'Enter') return;
+    e.preventDefault();      // 防止提交/刷新/奇怪行为
+    e.stopPropagation();
+    applyInput();
+  });
+
+  // ✅ 按钮兜底触发
+  if(btnSearch){
+    btnSearch.addEventListener("click", (e) => {
+      e.preventDefault();
+      applyInput();
+    });
+  }
 
   // metric 切换
   elShowMode.addEventListener('change', () => {
