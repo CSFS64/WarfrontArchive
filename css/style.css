@@ -434,17 +434,25 @@ body{
 }
 .full-btn:hover{ filter: brightness(1.03); }
 
-/* ===== MarkerCluster (make it “圆圈数字”感更强) ===== */
+/* ===== MarkerCluster ===== */
+/* 外圈淡灰（默认感） */
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large{
-  background: rgba(0,0,0,.10) !important;
+  background: rgba(0,0,0,.12) !important;
 }
+
+/* 内圈：颜色由 JS inline style 控制，所以这里不要写死 background */
 .marker-cluster div{
-  background: rgba(0,0,0,.55) !important;
   color:#fff !important;
   font-weight:700 !important;
-  border:2px solid rgba(255,255,255,.65) !important;
+  border:2px solid rgba(255,255,255,.70) !important;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35) inset;
+}
+
+/* 单点也沿用 cluster 结构：稍微小一点更像“点” */
+.wa-point.marker-cluster div{
+  border:2px solid rgba(255,255,255,.75) !important;
 }
 
 /* responsive */
