@@ -329,12 +329,37 @@ body{
   color:#111;
 }
 
+.search-box{
+  flex:1;
+  display:flex;
+  align-items:center;
+  min-width: 260px;
+}
+
+.search-box .search-like{
+  flex:1;
+  min-width: 220px;
+}
+
+.search-btn{
+  margin-left:8px;
+  padding:4px 12px;
+  font-size:14px;
+  border:1px solid #777;
+  background:#f2f2f2;
+  cursor:pointer;
+}
+.search-btn:active{
+  background:#e5e5e5;
+}
+
 /* ===== chart area ===== */
 .chart-wrap{
   position:relative;
   background:#fff;
-  padding: 10px 8px 18px;
+  padding: 10px 160px 18px 8px;
   border-bottom:1px solid #bbb;
+  min-height: 190px;
 }
 .y-label{
   position:absolute;
@@ -350,10 +375,15 @@ body{
 .rating-legend{
   position:absolute;
   right:10px;
-  top:12px;
-  width: 130px;
-  border-left: 0;
+  top:10px;
+  width: 140px;
   font-size:13px;
+
+  bottom:10px;
+  overflow:auto;
+  padding-left:10px;
+  border-left:1px solid #111;
+  background: rgba(255,255,255,0.85);
 }
 .legend-title{
   font-weight:700;
