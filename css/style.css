@@ -293,6 +293,42 @@ body{
   background:#fff;
 }
 
+/* ===== date chips ===== */
+.chips{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  min-height: 26px;
+}
+
+.chip{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:3px 8px;
+  border:1px solid #111;
+  background:#e8e8e8;
+  font-size:14px;
+  line-height:1;
+  user-select:none;
+}
+
+.chip .x{
+  display:inline-block;
+  font-weight:700;
+  padding:0 4px;
+  cursor:pointer;
+  border-left:1px solid #111;
+  margin-left:4px;
+  line-height:1;
+}
+
+.chip-sep{
+  font-size:14px;
+  color:#111;
+}
+
 /* ===== chart area ===== */
 .chart-wrap{
   position:relative;
