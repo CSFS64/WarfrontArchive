@@ -275,49 +275,112 @@ function bindUI(){
    5) DATE INPUT PARSER
    ========================= */
 
-function parseDateInput(raw){
-  // range separators: ~, to, -, –
-  const rangeMatch = raw.match(/(.+?)\s*(~|to|–|-)\s*(.+)/i);
-  if(rangeMatch){
-    const a = parseOneDate(rangeMatch[1].trim());
-    const b = parseOneDate(rangeMatch[3].trim());
-    if(!a || !b) return null;
-    const start = a <= b ? a : b;
-    const end = a <= b ? b : a;
-    return { type:"range", start, end };
-  }
+// --- helpers: compare ISO date strings safely ---
+function cmpISO(a,b){ return a < b ? -1 : a > b ? 1 : 0; }
 
-  const d = parseOneDate(raw);
-  if(!d) return null;
-  return { type:"single", date:d };
+// --- normalize separators, trim, unify punctuation ---
+function normalizeSep(s){
+  return (s||"")
+    .trim()
+    .replace(/[，,]/g, " ")
+    .replace(/[~～至到]/g, "~")
+    .replace(/[－–—]/g, "-")
+    .replace(/\s+/g, " ");
 }
 
-function parseOneDate(s){
-  // YYYY-MM-DD or YYYY/MM/DD
-  let m = s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})$/);
+// 数据可用日期边界（基于 DEMO_DATES 或未来导入数据）
+function getDataDateBounds(){
+  const sorted = DEMO_DATES.slice().sort();
+  return { min: sorted[0], max: sorted[sorted.length-1], set: new Set(sorted) };
+}
+
+// 裁剪一个范围到“数据存在的日期区间”
+function clipRangeToData(startISO, endISO){
+  const { min, max } = getDataDateBounds();
+
+  let s = startISO;
+  let e = endISO;
+
+  if(cmpISO(s, min) < 0) s = min;
+  if(cmpISO(e, max) > 0) e = max;
+
+  // 若裁剪后反过来，说明完全不相交
+  if(cmpISO(s, e) > 0) return null;
+
+  return { start: s, end: e };
+}
+
+// 把各种可能的“单个日期/年月/年”输入解析成 {kind, y, m?, d?}
+function extractYMDLoose(raw){
+  const s = normalizeSep(raw);
+
+  // 1) 中文：2026年2月18日 / 2026年2月 / 2026年
+  let m = s.match(/^(\d{4})\s*年(?:\s*(\d{1,2})\s*月)?(?:\s*(\d{1,2})\s*日)?$/);
   if(m){
-    return toISO(+m[1], +m[2], +m[3]);
+    const y = +m[1];
+    const mo = m[2] ? +m[2] : null;
+    const d = m[3] ? +m[3] : null;
+    return { kind: d? "ymd" : mo? "ym" : "y", y, m: mo, d };
   }
 
-  // MM/DD/YYYY
-  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  // 2) 纯年：2026
+  m = s.match(/^(\d{4})$/);
+  if(m) return { kind:"y", y:+m[1] };
+
+  // 3) YYYY[-/.]MM[-/.]DD  / YYYY[-/.]MM
+  m = s.match(/^(\d{4})[\/\-.](\d{1,2})(?:[\/\-.](\d{1,2}))?$/);
   if(m){
-    return toISO(+m[3], +m[1], +m[2]);
+    const y = +m[1], mo = +m[2], d = m[3] ? +m[3] : null;
+    return { kind: d? "ymd" : "ym", y, m: mo, d };
   }
 
-  // Month name formats: "Feb 18 2026", "February 18, 2026"
-  m = s.match(/^([A-Za-z]+)\s+(\d{1,2})(?:,)?\s+(\d{4})$/);
+  // 4) DD[-/.]MM[-/.]YYYY  or  MM[-/.]DD[-/.]YYYY  (智能判断)
+  m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/);
   if(m){
-    const mon = monthIndex(m[1]);
-    if(!mon) return null;
-    return toISO(+m[3], mon, +m[2]);
+    const a = +m[1], b = +m[2], y = +m[3];
+
+    // 若 a>12 且 b<=12 => DD-MM-YYYY
+    if(a > 12 && b <= 12) return { kind:"ymd", y, m:b, d:a };
+
+    // 若 b>12 且 a<=12 => MM-DD-YYYY
+    if(b > 12 && a <= 12) return { kind:"ymd", y, m:a, d:b };
+
+    // 两者都<=12：默认按 MM-DD-YYYY（美式）——如果你想默认欧式我也能改
+    return { kind:"ymd", y, m:a, d:b };
+  }
+
+  // 5) 只输入 月/年：2/2026 或 02-2026 或 Feb 2026
+  m = s.match(/^(\d{1,2})[\/\-.](\d{4})$/);
+  if(m){
+    return { kind:"ym", y:+m[2], m:+m[1] };
+  }
+
+  // 6) 英文月份：Feb 18 2026 / 18 Feb 2026 / February 2026
+  m = s.match(/^([A-Za-z]+)\s+(\d{1,2})\s+(\d{4})$/); // Feb 18 2026
+  if(m){
+    const mo = monthIndex(m[1]);
+    if(!mo) return null;
+    return { kind:"ymd", y:+m[3], m:mo, d:+m[2] };
+  }
+  m = s.match(/^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$/); // 18 Feb 2026
+  if(m){
+    const mo = monthIndex(m[2]);
+    if(!mo) return null;
+    return { kind:"ymd", y:+m[3], m:mo, d:+m[1] };
+  }
+  m = s.match(/^([A-Za-z]+)\s+(\d{4})$/); // Feb 2026
+  if(m){
+    const mo = monthIndex(m[1]);
+    if(!mo) return null;
+    return { kind:"ym", y:+m[2], m:mo };
   }
 
   return null;
 }
 
+// 月份名映射
 function monthIndex(name){
-  const n = name.toLowerCase();
+  const n = (name||"").toLowerCase();
   const map = {
     jan:1,january:1,feb:2,february:2,mar:3,march:3,apr:4,april:4,
     may:5,jun:6,june:6,jul:7,july:7,aug:8,august:8,
@@ -327,18 +390,112 @@ function monthIndex(name){
 }
 
 function toISO(y,m,d){
-  if(m<1||m>12||d<1||d>31) return null;
-  const dt = new Date(Date.UTC(y, m-1, d));
-  // 验证没溢出
-  if(dt.getUTCFullYear()!==y || (dt.getUTCMonth()+1)!==m || dt.getUTCDate()!==d) return null;
-  const mm = String(m).padStart(2,'0');
-  const dd = String(d).padStart(2,'0');
+  if(!Number.isFinite(y)) return null;
+  if(m!=null && (m<1||m>12)) return null;
+  if(d!=null && (d<1||d>31)) return null;
+
+  const dt = new Date(Date.UTC(y, (m||1)-1, (d||1)));
+  // 若给了 m/d 则严格校验
+  if(m!=null && (dt.getUTCMonth()+1)!==m) return null;
+  if(d!=null && dt.getUTCDate()!==d) return null;
+
+  const mm = String(m||1).padStart(2,'0');
+  const dd = String(d||1).padStart(2,'0');
   return `${y}-${mm}-${dd}`;
 }
 
+// ✅ 新版：解析输入 => selection（single / range）
+// 并支持 “抽象输入(年/月)” => 自动裁剪到数据存在范围
+function parseDateInput(raw){
+  const s = normalizeSep(raw);
+
+  // range: 支持 "~" 或 "to" 或 "-"（中间有空格）
+  let rm = s.match(/(.+?)\s*(~|to)\s*(.+)/i);
+  if(!rm){
+    // 也允许 "a - b" 这种带空格的 range，避免把单日里的 "-" 当 range
+    rm = s.match(/(.+?)\s+\-\s+(.+)/);
+    if(rm) rm = [rm[0], rm[1], "~", rm[2]];
+  }
+
+  if(rm){
+    const A = parseOneDate(rm[1].trim());
+    const B = parseOneDate(rm[3].trim());
+    if(!A || !B) return null;
+
+    // A/B 可能是 single 或 range（比如输入“2026-02 ~ 2026-03”）
+    const aStart = (A.type==="single") ? A.date : A.start;
+    const aEnd   = (A.type==="single") ? A.date : A.end;
+    const bStart = (B.type==="single") ? B.date : B.start;
+    const bEnd   = (B.type==="single") ? B.date : B.end;
+
+    const start = cmpISO(aStart, bStart) <= 0 ? aStart : bStart;
+    const end   = cmpISO(aEnd, bEnd) <= 0 ? bEnd : aEnd;
+
+    const clipped = clipRangeToData(start, end);
+    if(!clipped) return null;
+
+    if(clipped.start === clipped.end) return { type:"single", date: clipped.start };
+    return { type:"range", start: clipped.start, end: clipped.end };
+  }
+
+  // single 或 abstract
+  return parseOneDate(s);
+}
+
+// ✅ 新版：单个输入可以返回 single 或 range（当输入是“年/月”）
+function parseOneDate(raw){
+  const info = extractYMDLoose(raw);
+  if(!info) return null;
+
+  const { min, max } = getDataDateBounds();
+
+  // 具体到日
+  if(info.kind === "ymd"){
+    const iso = toISO(info.y, info.m, info.d);
+    if(!iso) return null;
+
+    // 若输入日期不在数据范围内：裁剪到边界（你也可以改成直接拒绝）
+    const clipped = clipRangeToData(iso, iso);
+    if(!clipped) return null;
+    return { type:"single", date: clipped.start };
+  }
+
+  // 只到月：转成该月的理论范围，再裁剪到数据存在范围
+  if(info.kind === "ym"){
+    const start = toISO(info.y, info.m, 1);
+    if(!start) return null;
+    // 计算月末：下个月1号-1天
+    const dt = new Date(Date.UTC(info.y, info.m, 1));
+    dt.setUTCDate(0); // 回到上个月最后一天 => 这里不对，改用下月
+    const nextMonth = new Date(Date.UTC(info.y, info.m, 1)); // next month day 1
+    nextMonth.setUTCMonth(nextMonth.getUTCMonth()+1);
+    nextMonth.setUTCDate(0);
+    const end = `${nextMonth.getUTCFullYear()}-${String(nextMonth.getUTCMonth()+1).padStart(2,'0')}-${String(nextMonth.getUTCDate()).padStart(2,'0')}`;
+
+    const clipped = clipRangeToData(start, end);
+    if(!clipped) return null;
+    if(clipped.start === clipped.end) return { type:"single", date: clipped.start };
+    return { type:"range", start: clipped.start, end: clipped.end };
+  }
+
+  // 只到年：转全年范围，再裁剪
+  if(info.kind === "y"){
+    const start = `${info.y}-01-01`;
+    const end = `${info.y}-12-31`;
+    const clipped = clipRangeToData(start, end);
+    if(!clipped) return null;
+
+    // ✅ 你要的效果：输入 2026，但数据只有 02-10~02-23，则 chip 显示该裁剪范围
+    if(clipped.start === clipped.end) return { type:"single", date: clipped.start };
+    return { type:"range", start: clipped.start, end: clipped.end };
+  }
+
+  return null;
+}
+
+// expandSelection 不变逻辑，但注意：现在 selection 可能来自裁剪后的范围
 function expandSelection(sel){
   if(sel.type === "single") return [sel.date];
-  // range
   const out = [];
   const a = new Date(sel.start+"T00:00:00Z");
   const b = new Date(sel.end+"T00:00:00Z");
