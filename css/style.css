@@ -263,6 +263,7 @@ body{
   padding: 8px 6px 6px;
   background:#fff;
   border-bottom:1px solid #bbb;
+  flex-wrap: wrap;
 }
 
 .mini-btn{
@@ -369,18 +370,22 @@ body{
 .chart-wrap{
   position:relative;
   background:#fff;
-  padding: 10px 160px 18px 8px;
+  padding: 10px 8px 18px;
   border-bottom:1px solid #bbb;
-  min-height: 190px;
+  
+  padding-left: 44px;
 }
 .y-label{
   position:absolute;
-  left:6px;
-  top:52%;
-  transform: rotate(-90deg) translateY(-50%);
-  transform-origin:left top;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: left center;
+
   font-size:14px;
   color:#111;
+  white-space: nowrap;
+  pointer-events:none;
 }
 
 /* right legend (rating-like) */
