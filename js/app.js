@@ -220,21 +220,23 @@ function init(){
 function bindUI(){
   // 添加日期/区间：回车
   elQuick.addEventListener('keydown', (e) => {
-    if(e.key !== 'Enter') return;
-    const raw = (elQuick.value || "").trim();
-    if(!raw) return;
-
-    const parsed = parseDateInput(raw);
-    if(!parsed){
-      // 你想要更强提示我也可以加 toast
-      elQuick.select();
-      return;
-    }
-
-    state.selections.push(parsed);
-    elQuick.value = "";
-    renderAll();
-  });
+     if (e.key !== 'Enter') return;
+   
+     e.preventDefault(); // ✅ 防止 Enter 触发提交/刷新
+   
+     const raw = (elQuick.value || "").trim();
+     if (!raw) return;
+   
+     const parsed = parseDateInput(raw);
+     if (!parsed) {
+       elQuick.select();
+       return;
+     }
+   
+     state.selections.push(parsed);
+     elQuick.value = "";
+     renderAll();
+   });
 
   // metric 切换
   elShowMode.addEventListener('change', () => {
