@@ -82,18 +82,89 @@ const DEMO_GEO = {
 // Demo：按日期给“州/方向/定居点”一个击退次数
 // 真实版你会从 Excel 来：date, oblast, direction, settlement, repelled_count ...
 const DEMO_DATES = [
-  "2026-02-16","2026-02-17","2026-02-18","2026-02-19","2026-02-20"
+  "2026-02-10","2026-02-11","2026-02-12","2026-02-13",
+  "2026-02-14","2026-02-15","2026-02-16","2026-02-17",
+  "2026-02-18","2026-02-19","2026-02-20","2026-02-21",
+  "2026-02-22","2026-02-23"
 ];
 
-// 生成一些稳定随机数（demo 用）
-function seeded(n){ return Math.abs(Math.sin(n)*10000)%1; }
-
-function demoValue(dateStr, key){
-  const d = DEMO_DATES.indexOf(dateStr) + 1;
+// 稳定 hash
+function hashStr(str){
   let h = 0;
-  for(const ch of key) h = (h*31 + ch.charCodeAt(0)) >>> 0;
-  const v = Math.floor( (seeded(h + d*999) * 12) );
-  return v;
+  for(let i=0;i<str.length;i++){
+    h = (h<<5) - h + str.charCodeAt(i);
+    h |= 0;
+  }
+  return Math.abs(h);
+}
+
+// 日期强度曲线（模拟前线波动）
+function dateIntensity(dateStr){
+  const idx = DEMO_DATES.indexOf(dateStr);
+  if(idx < 0) return 0.5;
+
+  // 模拟周期波动 + 局部峰值
+  const wave = 0.6 + 0.4*Math.sin(idx * 0.8);
+  const peak = (idx===8 || idx===9) ? 1.6 : 1.0; // 18–19 高峰
+  const decay = idx > 10 ? 0.8 : 1.0;
+
+  return wave * peak * decay;
+}
+
+// oblast 权重（不同战区强度不同）
+const OBLAST_WEIGHT = {
+  "Sumy": 0.3,
+  "Kharkiv": 1.2,
+  "Luhansk": 0.9,
+  "Donetsk": 1.4,
+  "Dnipropetrovsk": 0.5,
+  "Zaporizhzhia": 1.1,
+  "Kherson": 0.8
+};
+
+// direction 权重
+const DIR_WEIGHT = {
+  "Kupiansk": 1.2,
+  "Vovchansk": 0.9,
+  "Avdiivka": 1.4,
+  "Bakhmut": 1.1,
+  "Orikhiv": 1.0,
+  "Dnipro Left Bank": 0.7
+};
+
+// settlement 权重
+const SET_WEIGHT = {
+  "Kupiansk": 1.2,
+  "Dvorichna": 0.7,
+  "Vovchansk": 0.8,
+  "Lyptsi": 0.6,
+  "Avdiivka": 1.3,
+  "Orlivka": 0.7,
+  "Chasiv Yar": 1.1,
+  "Klishchiivka": 0.9,
+  "Robotyne": 1.2,
+  "Verbove": 0.8,
+  "Krynky": 0.9
+};
+
+// 主 demo 数值生成
+function demoValue(dateStr, key){
+  const parts = key.split(":"); // settle:oblast:dir:set
+  let oblast = parts[1] || "";
+  let dir = parts[2] || "";
+  let set = parts[3] || "";
+
+  const base =
+    (OBLAST_WEIGHT[oblast] || 0.4) *
+    (DIR_WEIGHT[dir] || 0.7) *
+    (SET_WEIGHT[set] || 0.8);
+
+  const noise = (hashStr(dateStr + key) % 100) / 100;
+  const intensity = dateIntensity(dateStr);
+
+  const val = Math.floor(base * intensity * 12 + noise * 2);
+
+  return Math.max(0, val);
 }
 
 /* =========================
