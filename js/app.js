@@ -649,9 +649,15 @@ function initMap(){
 
   map.setView([48.8, 31.2], 6);
 
-  map.on('zoomend', () => {
-    updateMapLayer();
-  });
+  // ✅ 三个层：只创建一次
+  layerOblast = buildClusterLayer([]);
+  layerDir = buildClusterLayer([]);
+  layerSettle = buildClusterLayer([]);
+
+  // 默认先加一个（否则后面 updateMapLayer add/remove 会乱）
+  map.addLayer(layerOblast);
+
+  map.on('zoomend', updateMapLayer);
 }
 
 function updateMapLayer(){
@@ -674,21 +680,29 @@ function setActiveLayer(which){
 }
 
 function buildClusterLayer(markers){
-  return L.markerClusterGroup({
+  const group = L.markerClusterGroup({
     maxClusterRadius: 60,
     showCoverageOnHover: false,
-    iconCreateFunction: function (c) {
-      const ms = c.getAllChildMarkers();
+    animate: true,
+    animateAddingMarkers: true,
+
+    iconCreateFunction: function (cluster) {
+      const ms = cluster.getAllChildMarkers();
       const sum = ms.reduce((acc, m) => acc + (m.options.__value || 0), 0);
+
+      // 按 sum 决定 small/medium/large（阈值你可调）
       const size = sum >= 80 ? 'large' : sum >= 30 ? 'medium' : 'small';
 
-      return new L.DivIcon({
+      return L.divIcon({
         html: `<div><span>${sum}</span></div>`,
-        className: `marker-cluster marker-cluster-${size}`,
-        iconSize: new L.Point(40, 40)
+        className: `marker-cluster marker-cluster-${size}`, // ✅ 默认样式
+        iconSize: L.point(40, 40)
       });
     }
-  }).addLayers(markers);
+  });
+
+  if(markers?.length) group.addLayers(markers);
+  return group;
 }
 
 function sumOverDates(dates, fn){
@@ -703,21 +717,29 @@ function settlementSum(dates, oblast, dir, settlementName){
   );
 }
 
+function makeValueIcon(value){
+  const size = value >= 80 ? 'large' : value >= 30 ? 'medium' : 'small';
+  return L.divIcon({
+    html: `<div><span>${value}</span></div>`,
+    className: `marker-cluster marker-cluster-${size} wa-point`, // ✅ 单点也用同风格
+    iconSize: L.point(34, 34)
+  });
+}
+
 function renderMap(){
-  const dates = flattenSelectedDates(); // ✅ 空 selections 时会返回 DEMO_DATES（All dates）
+  const dates = flattenSelectedDates(); // 空 selections 时会返回 DEMO_DATES（All dates）
   if(dates.length === 0) return;
 
-  // ✅ subtitle：显示筛选范围（默认就是全部范围）
+  // subtitle：显示筛选范围
   const rangeLabel = (dates.length === 1)
     ? dates[0]
     : `${dates[0]}~${dates[dates.length - 1]}`;
-
   elSubtitle.textContent = `Reports on ${rangeLabel}`;
 
-  // ✅ 统计：按筛选日期聚合总和
+  // 统计：按筛选日期聚合总和（用于右上角 Repelled）
   let total = 0;
 
-  // 1) oblast markers（聚合）
+  // ---------- 1) oblast markers ----------
   const mOb = [];
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
@@ -728,24 +750,11 @@ function renderMap(){
 
     total += v;
 
-    const mk = L.circleMarker(geo.center, {
-      radius: 12,
-      color: "#111",
-      weight: 1,
-      fillColor: "#f39b00",
-      fillOpacity: 0.85,
-      __value: v
-    });
-
-    // ✅ 永久显示数字（不需要点击）
-    mk.bindTooltip(String(v), {
-      permanent: true,
-      direction: "center",
-      className: "num-label",
-      interactive: false
-    });
-
-    mk.bindPopup(`<b>${ob}</b><br/>Repelled (sum): ${v}`);
+    const mk = markerWithValue(
+      geo.center,
+      v,
+      `<b>${ob}</b><br/>Repelled (sum): ${v}`
+    );
     mOb.push(mk);
   }
 
@@ -753,7 +762,7 @@ function renderMap(){
   elAssaults.textContent = "0";
   elOther.textContent = "0";
 
-  // 2) direction markers（聚合）
+  // ---------- 2) direction markers ----------
   const mDir = [];
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
@@ -769,31 +778,18 @@ function renderMap(){
         }
         return s;
       });
-
       if(v <= 0) continue;
 
-      const mk = L.circleMarker(d.center, {
-        radius: 11,
-        color: "#111",
-        weight: 1,
-        fillColor: "#00d084",
-        fillOpacity: 0.85,
-        __value: v
-      });
-
-      mk.bindTooltip(String(v), {
-        permanent: true,
-        direction: "center",
-        className: "num-label",
-        interactive: false
-      });
-
-      mk.bindPopup(`<b>${ob} / ${dn}</b><br/>Repelled (sum): ${v}`);
+      const mk = markerWithValue(
+        d.center,
+        v,
+        `<b>${ob} / ${dn}</b><br/>Repelled (sum): ${v}`
+      );
       mDir.push(mk);
     }
   }
 
-  // 3) settlement markers（聚合）
+  // ---------- 3) settlement markers ----------
   const mSet = [];
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
@@ -804,33 +800,27 @@ function renderMap(){
         const v = settlementSum(dates, ob, dn, st.name);
         if(v <= 0) continue;
 
-        const mk = L.circleMarker([st.lat, st.lng], {
-          radius: 10,
-          color: "#111",
-          weight: 1,
-          fillColor: "#ffd200",
-          fillOpacity: 0.85,
-          __value: v
-        });
-
-        mk.bindTooltip(String(v), {
-          permanent: true,
-          direction: "center",
-          className: "num-label",
-          interactive: false
-        });
-
-        mk.bindPopup(`<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`);
+        const mk = markerWithValue(
+          [st.lat, st.lng],
+          v,
+          `<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`
+        );
         mSet.push(mk);
       }
     }
   }
 
-  // ✅ 重新建层（避免旧层残留）
-  layerOblast = buildClusterLayer(mOb);
-  layerDir = buildClusterLayer(mDir);
-  layerSettle = buildClusterLayer(mSet);
+  // ✅ 关键：不要重新 build layer（否则会叠加/动画差）
+  // 而是：清空旧的 markers，再加新的 markers
+  layerOblast.clearLayers();
+  layerDir.clearLayers();
+  layerSettle.clearLayers();
 
+  layerOblast.addLayers(mOb);
+  layerDir.addLayers(mDir);
+  layerSettle.addLayers(mSet);
+
+  // 根据 zoom 切换显示哪个层
   updateMapLayer();
 }
 
