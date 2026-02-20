@@ -84,18 +84,18 @@
 
         <!-- Temporal controls row (looks like TornadoArchive) -->
         <div class="temporal-controls">
-          <button class="mini-btn" id="btnSurprise">Surprise Me</button>
-
-          <div class="pill" id="selectedDatePill">—</div>
-
-          <input class="search-like" id="quickInput" placeholder="e.g., Nov 2013 / 2026-02-18" />
-
+          <!-- 日期块区域（单日/区间都会在这里显示） -->
+          <div class="chips" id="dateChips" aria-label="Selected dates"></div>
+        
+          <!-- 输入框：回车添加单日或区间 -->
+          <input class="search-like" id="quickInput"
+                 placeholder="e.g., 2026-02-18  |  02/18/2026  |  Feb 18 2026  |  2026-02-18~2026-02-25" />
+        
           <div class="show-box">
             <span class="show-label">Show:</span>
             <select class="show-select" id="showMode">
-              <option value="all" selected>All</option>
-              <option value="hourly">Hourly</option>
-              <option value="none">None</option>
+              <option value="repelled" selected>Repelled Attacks</option>
+              <!-- 以后你可以加：<option value="losses">Losses</option> ... -->
             </select>
           </div>
         </div>
