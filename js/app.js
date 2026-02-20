@@ -10,6 +10,20 @@ const OBLASTS = [
   "Dnipropetrovsk", "Zaporizhzhia", "Kherson"
 ];
 
+const OBLAST_COLOR = {
+  "Sumy": "#ff00ff",
+  "Kharkiv": "#ff0000",
+  "Luhansk": "#ff7a00",
+  "Donetsk": "#ffd200",
+  "Dnipropetrovsk": "#0077ff",
+  "Zaporizhzhia": "#00d084",
+  "Kherson": "#666666"
+};
+
+function colorForOblast(oblast){
+  return OBLAST_COLOR[oblast] || "#666";
+}
+
 // Demo：方向、定居点（你以后会从表格来）
 const DEMO_GEO = {
   // oblast -> directions -> settlements
@@ -683,19 +697,40 @@ function buildClusterLayer(markers){
   const group = L.markerClusterGroup({
     maxClusterRadius: 60,
     showCoverageOnHover: false,
+
+    // ✅ 动画（聚合/分离）
     animate: true,
     animateAddingMarkers: true,
+    chunkedLoading: true,     // 数据多时也不卡
 
     iconCreateFunction: function (cluster) {
       const ms = cluster.getAllChildMarkers();
+
+      // 1) cluster 总和（显示数字）
       const sum = ms.reduce((acc, m) => acc + (m.options.__value || 0), 0);
 
-      // 按 sum 决定 small/medium/large（阈值你可调）
+      // 2) 找“主导州”（按 value 总和最大）
+      const byOblast = {};
+      for(const m of ms){
+        const ob = m.options.__oblast || "Other";
+        const v  = m.options.__value || 0;
+        byOblast[ob] = (byOblast[ob] || 0) + v;
+      }
+      let dominant = "Other";
+      let best = -1;
+      for(const [ob, v] of Object.entries(byOblast)){
+        if(v > best){
+          best = v;
+          dominant = ob;
+        }
+      }
+
+      const color = colorForOblast(dominant);
       const size = sum >= 80 ? 'large' : sum >= 30 ? 'medium' : 'small';
 
       return L.divIcon({
-        html: `<div><span>${sum}</span></div>`,
-        className: `marker-cluster marker-cluster-${size}`, // ✅ 默认样式
+        html: `<div style="background:${color}"><span>${sum}</span></div>`,
+        className: `marker-cluster marker-cluster-${size}`,
         iconSize: L.point(40, 40)
       });
     }
@@ -717,19 +752,21 @@ function settlementSum(dates, oblast, dir, settlementName){
   );
 }
 
-function makeValueIcon(value){
+function makeValueIcon(value, color){
   const size = value >= 80 ? 'large' : value >= 30 ? 'medium' : 'small';
   return L.divIcon({
-    html: `<div><span>${value}</span></div>`,
+    html: `<div style="background:${color}"><span>${value}</span></div>`,
     className: `marker-cluster marker-cluster-${size} wa-point`,
     iconSize: L.point(40, 40)
   });
 }
 
-function markerWithValue(latlng, value, popupHtml){
+function markerWithValue(latlng, value, popupHtml, oblast){
+  const color = colorForOblast(oblast);
   return L.marker(latlng, {
-    icon: makeValueIcon(value),
-    __value: value
+    icon: makeValueIcon(value, color),
+    __value: value,
+    __oblast: oblast
   }).bindPopup(popupHtml);
 }
 
@@ -758,10 +795,11 @@ function renderMap(){
     total += v;
 
     const mk = markerWithValue(
-      geo.center,
-      v,
-      `<b>${ob}</b><br/>Repelled (sum): ${v}`
-    );
+        geo.center,
+        v,
+        `<b>${ob}</b><br/>Repelled (sum): ${v}`,
+        ob
+      );
     mOb.push(mk);
   }
 
@@ -790,7 +828,8 @@ function renderMap(){
       const mk = markerWithValue(
         d.center,
         v,
-        `<b>${ob} / ${dn}</b><br/>Repelled (sum): ${v}`
+        `<b>${ob} / ${dn}</b><br/>Repelled (sum): ${v}`,
+        ob
       );
       mDir.push(mk);
     }
@@ -808,10 +847,11 @@ function renderMap(){
         if(v <= 0) continue;
 
         const mk = markerWithValue(
-          [st.lat, st.lng],
-          v,
-          `<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`
-        );
+           [st.lat, st.lng],
+           v,
+           `<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`,
+           ob
+         );
         mSet.push(mk);
       }
     }
