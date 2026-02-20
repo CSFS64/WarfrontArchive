@@ -173,10 +173,7 @@ function demoValue(dateStr, key){
 
 const state = {
   metric: "repelled", // showMode
-  selections: [
-    // 默认给一个单日示例
-    { type:"single", date:"2026-02-18" }
-  ]
+  selections: []
 };
 
 /* =========================
@@ -341,6 +338,14 @@ function expandSelection(sel){
 function renderChips(){
   elChips.innerHTML = "";
 
+  if(state.selections.length === 0){
+    const hint = document.createElement("span");
+    hint.className = "muted";
+    hint.textContent = "All dates";
+    elChips.appendChild(hint);
+    return;
+  }
+
   state.selections.forEach((sel, idx) => {
     if(sel.type === "single"){
       elChips.appendChild(makeChip(sel.date, () => {
@@ -350,7 +355,6 @@ function renderChips(){
       return;
     }
 
-    // range: [start x] ~ [end x]   （任一 x 删除整段）
     elChips.appendChild(makeChip(sel.start, () => {
       state.selections.splice(idx, 1);
       renderAll();
@@ -413,11 +417,15 @@ function renderChart(){
 }
 
 function flattenSelectedDates(){
+  // ✅ 默认：不过滤 = 全部日期
+  if(state.selections.length === 0){
+    return DEMO_DATES.slice();
+  }
+
   const set = [];
   for(const sel of state.selections){
     for(const d of expandSelection(sel)) set.push(d);
   }
-  // 去重 + 排序
   const uniq = Array.from(new Set(set));
   uniq.sort();
   return uniq;
@@ -617,11 +625,6 @@ function initChart(){
    ========================= */
 
 function renderAll(){
-  // 没选任何日期：给一个默认
-  if(state.selections.length === 0){
-    state.selections.push({ type:"single", date:"2026-02-18" });
-  }
-
   renderChips();
   renderChart();
   renderMap();
