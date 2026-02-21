@@ -206,14 +206,7 @@ const elOther = document.getElementById('statOther');
 let map, chart;
 
 // Map layers
-let layerOblast = null;
-let layerDir = null;
 let layerSettle = null;
-
-// Zoom thresholds
-const Z_OBLAST = 6;     // <=6: oblast
-const Z_DIR = 9;        // 7-9: direction
-// >=10: settlement
 
 init();
 
@@ -663,34 +656,8 @@ function initMap(){
 
   map.setView([48.8, 31.2], 6);
 
-  // ✅ 三个层：只创建一次
-  layerOblast = buildClusterLayer([]);
-  layerDir = buildClusterLayer([]);
   layerSettle = buildClusterLayer([]);
-
-  // 默认先加一个（否则后面 updateMapLayer add/remove 会乱）
-  map.addLayer(layerOblast);
-
-  map.on('zoomend', updateMapLayer);
-}
-
-function updateMapLayer(){
-  const z = map.getZoom();
-  const target =
-    (z <= Z_OBLAST) ? "oblast" :
-    (z <= Z_DIR) ? "dir" : "settle";
-
-  setActiveLayer(target);
-}
-
-function setActiveLayer(which){
-  if(layerOblast) map.removeLayer(layerOblast);
-  if(layerDir) map.removeLayer(layerDir);
-  if(layerSettle) map.removeLayer(layerSettle);
-
-  if(which === "oblast") map.addLayer(layerOblast);
-  else if(which === "dir") map.addLayer(layerDir);
-  else map.addLayer(layerSettle);
+  map.addLayer(layerSettle);
 }
 
 function buildClusterLayer(markers){
@@ -771,7 +738,7 @@ function markerWithValue(latlng, value, popupHtml, oblast){
 }
 
 function renderMap(){
-  const dates = flattenSelectedDates(); // 空 selections 时会返回 DEMO_DATES（All dates）
+  const dates = flattenSelectedDates();
   if(dates.length === 0) return;
 
   // subtitle：显示筛选范围
@@ -780,63 +747,10 @@ function renderMap(){
     : `${dates[0]}~${dates[dates.length - 1]}`;
   elSubtitle.textContent = `Reports on ${rangeLabel}`;
 
-  // 统计：按筛选日期聚合总和（用于右上角 Repelled）
   let total = 0;
 
-  // ---------- 1) oblast markers ----------
-  const mOb = [];
-  for(const ob of OBLASTS){
-    const geo = DEMO_GEO[ob];
-    if(!geo) continue;
-
-    const v = sumOverDates(dates, (dateStr) => oblastTotalForDate(ob, dateStr));
-    if(v <= 0) continue;
-
-    total += v;
-
-    const mk = markerWithValue(
-        geo.center,
-        v,
-        `<b>${ob}</b><br/>Repelled (sum): ${v}`,
-        ob
-      );
-    mOb.push(mk);
-  }
-
-  elRepelled.textContent = String(total);
-  elAssaults.textContent = "0";
-  elOther.textContent = "0";
-
-  // ---------- 2) direction markers ----------
-  const mDir = [];
-  for(const ob of OBLASTS){
-    const geo = DEMO_GEO[ob];
-    if(!geo) continue;
-
-    for(const [dn, d] of Object.entries(geo.directions || {})){
-      if(!d?.settlements?.length) continue;
-
-      const v = sumOverDates(dates, (dateStr) => {
-        let s = 0;
-        for(const st of d.settlements){
-          s += demoValue(dateStr, `settle:${ob}:${dn}:${st.name}`);
-        }
-        return s;
-      });
-      if(v <= 0) continue;
-
-      const mk = markerWithValue(
-        d.center,
-        v,
-        `<b>${ob} / ${dn}</b><br/>Repelled (sum): ${v}`,
-        ob
-      );
-      mDir.push(mk);
-    }
-  }
-
-  // ---------- 3) settlement markers ----------
   const mSet = [];
+
   for(const ob of OBLASTS){
     const geo = DEMO_GEO[ob];
     if(!geo) continue;
@@ -846,29 +760,26 @@ function renderMap(){
         const v = settlementSum(dates, ob, dn, st.name);
         if(v <= 0) continue;
 
+        total += v;
+
         const mk = markerWithValue(
-           [st.lat, st.lng],
-           v,
-           `<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`,
-           ob
-         );
+          [st.lat, st.lng],
+          v,
+          `<b>${st.name}</b><br/>${ob} / ${dn}<br/>Repelled (sum): ${v}`,
+          ob
+        );
+
         mSet.push(mk);
       }
     }
   }
 
-  // ✅ 关键：不要重新 build layer（否则会叠加/动画差）
-  // 而是：清空旧的 markers，再加新的 markers
-  layerOblast.clearLayers();
-  layerDir.clearLayers();
+  elRepelled.textContent = String(total);
+  elAssaults.textContent = "0";
+  elOther.textContent = "0";
+
   layerSettle.clearLayers();
-
-  layerOblast.addLayers(mOb);
-  layerDir.addLayers(mDir);
   layerSettle.addLayers(mSet);
-
-  // 根据 zoom 切换显示哪个层
-  updateMapLayer();
 }
 
 /* =========================
