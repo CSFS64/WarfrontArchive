@@ -314,7 +314,6 @@ function drawFrontlineGeoJSON(geojson){
   }
 
   frontlineLayer = L.geoJSON(geojson, {
-    renderer: vecRenderer,
     style: (feature) => {
       const name = String(feature?.properties?.Name || "").trim().toLowerCase();
 
