@@ -305,6 +305,29 @@ body{
   background:#fff;
 }
 
+/* ===== temporal controls: wrap layout ===== */
+.temporal-controls{
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 8px;
+}
+
+.chips{
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+.search-box{
+  flex: 1 1 520px;
+  min-width: 320px;
+}
+
+.show-box{
+  flex: 0 0 auto;
+  margin-left: auto;
+  white-space: nowrap;
+}
+
 /* ===== date chips ===== */
 .chips{
   display:flex;
@@ -369,18 +392,22 @@ body{
 .chart-wrap{
   position:relative;
   background:#fff;
-  padding: 10px 160px 18px 8px;
+  padding: 10px 160px 18px 44px;
   border-bottom:1px solid #bbb;
   min-height: 190px;
 }
+
+/* y轴标题 */
 .y-label{
   position:absolute;
-  left:6px;
-  top:52%;
-  transform: rotate(-90deg) translateY(-50%);
-  transform-origin:left top;
+  left:14px;
+  top:50%;
+  transform: translateY(-50%) rotate(-90deg);
+  transform-origin: center;
   font-size:14px;
   color:#111;
+  pointer-events:none;
+  white-space:nowrap;
 }
 
 /* right legend (rating-like) */
