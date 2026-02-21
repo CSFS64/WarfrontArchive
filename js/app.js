@@ -741,7 +741,7 @@ function renderChart(){
       type: 'line',
       label: 'MA7',
       data: ma7,
-      borderColor: '#ffffff',
+      borderColor: '#000000',
       backgroundColor: 'transparent',
       borderWidth: 2,
       pointRadius: 0,
