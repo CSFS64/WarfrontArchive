@@ -686,30 +686,122 @@ function makeChip(text, onRemove){
    7) RENDER: CHART (stacked by oblast)
    ========================= */
 
+function totalForDate(dateStr){
+  let s = 0;
+  for(const ob of OBLASTS){
+    s += oblastTotalForDate(ob, dateStr);
+  }
+  return s;
+}
+
+// 7日平均
+function movingAverage(values, windowSize){
+  const out = new Array(values.length).fill(null);
+  for(let i=0;i<values.length;i++){
+    const a = Math.max(0, i - windowSize + 1);
+    let sum = 0;
+    let cnt = 0;
+    for(let j=a;j<=i;j++){
+      const v = values[j];
+      if(v == null) continue;
+      sum += v;
+      cnt++;
+    }
+    out[i] = cnt ? (sum / cnt) : null;
+  }
+  return out;
+}
+
+// 线性回归 y = m*x + b
+function linearRegressionLine(values){
+  const n = values.length;
+  if(n <= 1) return values.map(() => null);
+
+  // x = 0..n-1
+  let sumX = 0, sumY = 0, sumXX = 0, sumXY = 0, cnt = 0;
+
+  for(let i=0;i<n;i++){
+    const y = values[i];
+    if(y == null) continue;
+    const x = i;
+    sumX += x;
+    sumY += y;
+    sumXX += x * x;
+    sumXY += x * y;
+    cnt++;
+  }
+
+  if(cnt <= 1) return values.map(() => null);
+
+  const denom = (cnt * sumXX - sumX * sumX);
+  const m = denom === 0 ? 0 : (cnt * sumXY - sumX * sumY) / denom;
+  const b = (sumY - m * sumX) / cnt;
+
+  return Array.from({length:n}, (_, i) => m * i + b);
+}
+
 function renderChart(){
   const dates = flattenSelectedDates();
   const labels = dates;
 
-  // datasets = 7 oblasts
+  // ===== 1) 堆叠柱：7 oblasts（原样保留）=====
   const colors = ["#ff00ff","#ff0000","#ff7a00","#ffd200","#0077ff","#00d084","#666"];
   const datasets = OBLASTS.map((ob, i) => {
     return {
+      type: 'bar',
       label: ob,
       data: labels.map(d => oblastTotalForDate(ob, d)),
       backgroundColor: colors[i % colors.length],
       borderColor: "#111",
       borderWidth: 1,
-      barThickness: labels.length <= 7 ? 50 : undefined
+      barThickness: labels.length <= 7 ? 50 : undefined,
+      stack: 'events'
     };
   });
 
+  // ===== 2) 计算总数序列（用于两条线）=====
+  const totals = labels.map(d => totalForDate(d));
+  const ma7 = movingAverage(totals, 7);
+  const trend = linearRegressionLine(totals);
+
+  // ===== 3) 叠加两条线 =====
+  datasets.push(
+    {
+      type: 'line',
+      label: 'MA7',
+      data: ma7,
+      borderColor: '#ffffff',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      pointRadius: 0,
+      tension: 0.25,
+      yAxisID: 'y',
+      order: 0
+    },
+    {
+      type: 'line',
+      label: 'Trend',
+      data: trend,
+      borderColor: '#000000',
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [6, 4],
+      pointRadius: 0,
+      tension: 0,
+      yAxisID: 'y',
+      order: 0
+    }
+  );
+
+  // ===== 4) 更新图表 =====
   chart.data.labels = labels;
   chart.data.datasets = datasets;
+
   chart.update();
 }
 
 function flattenSelectedDates(){
-  // ✅ 默认：不过滤 = 全部日期
+  // 默认全部日期
   if(state.selections.length === 0){
     return DEMO_DATES.slice();
   }
