@@ -316,30 +316,22 @@ function drawFrontlineGeoJSON(geojson){
   }
 
   frontlineLayer = L.geoJSON(geojson, {
-    style: (feature) => {
-      const g = feature?.geometry?.type;
-      if(g === "LineString" || g === "MultiLineString"){
-        return {
-          color: "#ffffff",
-          weight: 3,
-          opacity: 0.95
-        };
-      }
-      return {};
-    },
-    onEachFeature: (feature, layer) => {
-      const p = feature?.properties || {};
-      const label = p.name || p.title || p.date || null;
-      if(label) layer.bindPopup(String(label));
-    }
-  }).addTo(map);
-
-  try{
-    const b = frontlineLayer.getBounds();
-    if(b && b.isValid()){
-      map.fitBounds(b.pad(0.06), { maxZoom: 9 });
-    }
-  }catch(_){}
+    currentLayer = L.geoJSON(data, {
+     renderer: vecRenderer,
+     style: (feature) => {
+       const name = String(feature?.properties?.Name || "").trim().toLowerCase();
+   
+       // ✅ 完全按你原来的标准
+       if (name === "dpr")       return { color: "purple",   fillColor: "purple",   fillOpacity: 0.25, weight: 2   };
+       if (name === "red")       return { color: "#E60000",  fillColor: "#E60000",  fillOpacity: 0.20, weight: 1.5 };
+       if (name === "lib")       return { color: "#00A2E8",  fillColor: "#00A2E8",  fillOpacity: 0.20, weight: 1.5 };
+       if (name === "libed")     return { color: "#33CC00",  fillColor: "#33CC00",  fillOpacity: 0.20, weight: 1.5 };
+       if (name === "contested") return { color: "white",    fillColor: "white",    fillOpacity: 0.25, weight: 0   };
+   
+       // 兜底
+       return { color: "black", fillColor: "black", fillOpacity: 0.30, weight: 1 };
+     }
+   }).addTo(map);
 }
 
 function bindUI(){
