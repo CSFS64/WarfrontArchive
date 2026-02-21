@@ -331,7 +331,7 @@ function drawFrontlineGeoJSON(geojson){
        // 兜底
        return { color: "black", fillColor: "black", fillOpacity: 0.30, weight: 1 };
      }
-   }).addTo(map);
+   }).addTo(map)
 }
 
 function bindUI(){
