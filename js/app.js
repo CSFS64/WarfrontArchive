@@ -650,11 +650,10 @@ function initMap(){
   });
 
   L.tileLayer(
-     'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
      {
        maxZoom: 19,
-       opacity: 0.9,
-       attribution: 'Labels © Esri'
+       attribution: 'Tiles © Esri'
      }
    ).addTo(map);
 
