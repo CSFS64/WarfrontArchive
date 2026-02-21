@@ -308,30 +308,25 @@ async function bootFrontline(){
 }
 
 function drawFrontlineGeoJSON(geojson){
-  if(!map) return;
-
-  if(frontlineLayer){
+  if (frontlineLayer) {
     map.removeLayer(frontlineLayer);
     frontlineLayer = null;
   }
 
   frontlineLayer = L.geoJSON(geojson, {
-    currentLayer = L.geoJSON(data, {
-     renderer: vecRenderer,
-     style: (feature) => {
-       const name = String(feature?.properties?.Name || "").trim().toLowerCase();
-   
-       // ✅ 完全按你原来的标准
-       if (name === "dpr")       return { color: "purple",   fillColor: "purple",   fillOpacity: 0.25, weight: 2   };
-       if (name === "red")       return { color: "#E60000",  fillColor: "#E60000",  fillOpacity: 0.20, weight: 1.5 };
-       if (name === "lib")       return { color: "#00A2E8",  fillColor: "#00A2E8",  fillOpacity: 0.20, weight: 1.5 };
-       if (name === "libed")     return { color: "#33CC00",  fillColor: "#33CC00",  fillOpacity: 0.20, weight: 1.5 };
-       if (name === "contested") return { color: "white",    fillColor: "white",    fillOpacity: 0.25, weight: 0   };
-   
-       // 兜底
-       return { color: "black", fillColor: "black", fillOpacity: 0.30, weight: 1 };
-     }
-   }).addTo(map)
+    renderer: vecRenderer,
+    style: (feature) => {
+      const name = String(feature?.properties?.Name || "").trim().toLowerCase();
+
+      if (name === "dpr")       return { color: "purple",  fillColor: "purple",  fillOpacity: 0.25, weight: 2   };
+      if (name === "red")       return { color: "#E60000", fillColor: "#E60000", fillOpacity: 0.20, weight: 1.5 };
+      if (name === "lib")       return { color: "#00A2E8", fillColor: "#00A2E8", fillOpacity: 0.20, weight: 1.5 };
+      if (name === "libed")     return { color: "#33CC00", fillColor: "#33CC00", fillOpacity: 0.20, weight: 1.5 };
+      if (name === "contested") return { color: "white",   fillColor: "white",   fillOpacity: 0.25, weight: 0   };
+
+      return { color: "black", fillColor: "black", fillOpacity: 0.30, weight: 1 };
+    }
+  }).addTo(map);
 }
 
 function bindUI(){
