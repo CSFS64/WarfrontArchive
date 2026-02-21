@@ -712,34 +712,6 @@ function movingAverage(values, windowSize){
   return out;
 }
 
-// 线性回归 y = m*x + b
-function linearRegressionLine(values){
-  const n = values.length;
-  if(n <= 1) return values.map(() => null);
-
-  // x = 0..n-1
-  let sumX = 0, sumY = 0, sumXX = 0, sumXY = 0, cnt = 0;
-
-  for(let i=0;i<n;i++){
-    const y = values[i];
-    if(y == null) continue;
-    const x = i;
-    sumX += x;
-    sumY += y;
-    sumXX += x * x;
-    sumXY += x * y;
-    cnt++;
-  }
-
-  if(cnt <= 1) return values.map(() => null);
-
-  const denom = (cnt * sumXX - sumX * sumX);
-  const m = denom === 0 ? 0 : (cnt * sumXY - sumX * sumY) / denom;
-  const b = (sumY - m * sumX) / cnt;
-
-  return Array.from({length:n}, (_, i) => m * i + b);
-}
-
 function renderChart(){
   const dates = flattenSelectedDates();
   const labels = dates;
@@ -762,7 +734,6 @@ function renderChart(){
   // ===== 2) 计算总数序列（用于两条线）=====
   const totals = labels.map(d => totalForDate(d));
   const ma7 = movingAverage(totals, 7);
-  const trend = linearRegressionLine(totals);
 
   // ===== 3) 叠加两条线 =====
   datasets.push(
@@ -778,19 +749,6 @@ function renderChart(){
       yAxisID: 'y',
       order: 0
     },
-    {
-      type: 'line',
-      label: 'Trend',
-      data: trend,
-      borderColor: '#000000',
-      backgroundColor: 'transparent',
-      borderWidth: 2,
-      borderDash: [6, 4],
-      pointRadius: 0,
-      tension: 0,
-      yAxisID: 'y',
-      order: 0
-    }
   );
 
   // ===== 4) 更新图表 =====
