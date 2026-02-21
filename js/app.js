@@ -1006,6 +1006,7 @@ function initChart(){
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
       plugins: { legend: { display: false } },
       scales: {
         x: { stacked: true, grid: { color: '#9b9b9b', borderDash: [2,2] } },
