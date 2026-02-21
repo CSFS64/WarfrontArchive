@@ -649,10 +649,14 @@ function initMap(){
     preferCanvas: true
   });
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: ''
-  }).addTo(map);
+  L.tileLayer(
+     'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+     {
+       maxZoom: 19,
+       opacity: 0.9,
+       attribution: 'Labels © Esri'
+     }
+   ).addTo(map);
 
   map.setView([48.8, 31.2], 6);
 
