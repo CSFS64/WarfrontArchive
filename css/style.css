@@ -400,7 +400,6 @@ body{
 /* y轴标题 */
 .y-label{
   position:absolute;
-  left:14px;
   top:50%;
   transform: translateY(-50%) rotate(-90deg);
   transform-origin: center;
