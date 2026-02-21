@@ -266,6 +266,8 @@ const elAssaults = document.getElementById('statAssaults');
 const elOther = document.getElementById('statOther');
 
 let map, chart;
+let frontlineLayer = null;
+let frontlineMetaEl = null;
 
 // Map layers
 let layerSettle = null;
@@ -280,7 +282,64 @@ function init(){
   initMap();
   initChart();
   bindUI();
-  renderAll();
+  bootFrontline().finally(() => {
+    renderAll();
+  });
+}
+
+async function bootFrontline(){
+  try{
+    const gj = await loadLatestFrontline();
+    drawFrontlineGeoJSON(gj);
+
+    // 可选：每 10 分钟自动刷新一次最新前线（与 CACHE_MS 一致）
+    setInterval(async () => {
+      try{
+        const gj2 = await loadLatestFrontline();
+        drawFrontlineGeoJSON(gj2);
+      }catch(e){
+        console.warn("Frontline refresh failed:", e);
+      }
+    }, CACHE_MS);
+
+  }catch(e){
+    console.warn("Frontline boot failed:", e);
+  }
+}
+
+function drawFrontlineGeoJSON(geojson){
+  if(!map) return;
+
+  if(frontlineLayer){
+    map.removeLayer(frontlineLayer);
+    frontlineLayer = null;
+  }
+
+  frontlineLayer = L.geoJSON(geojson, {
+    style: (feature) => {
+      const g = feature?.geometry?.type;
+      if(g === "LineString" || g === "MultiLineString"){
+        return {
+          color: "#ffffff",
+          weight: 3,
+          opacity: 0.95
+        };
+      }
+      return {};
+    },
+    onEachFeature: (feature, layer) => {
+      const p = feature?.properties || {};
+      const label = p.name || p.title || p.date || null;
+      if(label) layer.bindPopup(String(label));
+    }
+  }).addTo(map);
+
+  try{
+    const b = frontlineLayer.getBounds();
+    if(b && b.isValid()){
+      map.fitBounds(b.pad(0.06), { maxZoom: 9 });
+    }
+  }catch(_){}
 }
 
 function bindUI(){
