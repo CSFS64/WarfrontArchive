@@ -1,6 +1,68 @@
 'use strict';
 
 /* =========================
+   0) 前线同步
+   ========================= */
+
+const TEST2_OWNER = "CSFS64";
+const TEST2_REPO  = "test2";
+const TEST2_PATH  = "data";
+
+// fetch 站点
+function pagesUrlFor(pathInRepo){
+  return `https://${TEST2_OWNER.toLowerCase()}.github.io/${TEST2_REPO}/${pathInRepo}`;
+}
+
+function parseDateFromFrontlineName(name){
+  const m = name.match(/^frontline-(\d{4})-(\d{2})-(\d{2})\.json$/);
+  if(!m) return null;
+  const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+  const t = Date.UTC(y, mo - 1, d);
+  if(Number.isNaN(t)) return null;
+  return t;
+}
+
+// 简单缓存
+let _latestFrontlineCache = { url: null, ts: 0 };
+const CACHE_MS = 10 * 60 * 1000; // 10 分钟缓存一次
+
+async function getLatestFrontlineUrl(){
+  const now = Date.now();
+  if(_latestFrontlineCache.url && (now - _latestFrontlineCache.ts) < CACHE_MS){
+    return _latestFrontlineCache.url;
+  }
+
+  const api = `https://api.github.com/repos/${TEST2_OWNER}/${TEST2_REPO}/contents/${TEST2_PATH}`;
+  const res = await fetch(api, { cache: "no-store" });
+  if(!res.ok) throw new Error("GitHub contents API failed: " + res.status);
+
+  const items = await res.json(); // [{name, type, ...}, ...]
+  const files = (Array.isArray(items) ? items : [])
+    .filter(x => x && x.type === "file" && typeof x.name === "string");
+
+  let best = null; // { t, name }
+  for(const f of files){
+    const t = parseDateFromFrontlineName(f.name);
+    if(t == null) continue;
+    if(!best || t > best.t) best = { t, name: f.name };
+  }
+
+  if(!best) throw new Error("No frontline-YYYY-MM-DD.json found in test2/data");
+
+  const pathInRepo = `${TEST2_PATH}/${best.name}`;
+  const url = pagesUrlFor(pathInRepo) + `?v=${now}`;
+  _latestFrontlineCache = { url, ts: now };
+  return url;
+}
+
+async function loadLatestFrontline(){
+  const url = await getLatestFrontlineUrl();
+  const res = await fetch(url, { cache: "no-store" });
+  if(!res.ok) throw new Error("Frontline JSON load failed: " + res.status);
+  return await res.json();
+}
+
+/* =========================
    1) DEMO DATA (以后换成 Excel 导入)
    ========================= */
 
